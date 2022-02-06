@@ -1,4 +1,18 @@
 # TallyArbiter-arduino-neopixel
+## Edit 
+
+Added pvw_active and pgm_active status check, so group 0 switches will not be set off after switch from PGM to PVW.
+
+Also static ip is now possible.
+
+### New Commands
+
+`led=ON&red=255&green=0&blue=0&group=0&PGM=ON`for PGM ON
+`led=OFF&group=0&PGM=OFF` for PGM OFF
+`led=ON&red=0&green=255&blue=0&group=0&PVW=ON`for PVW ON
+`led=OFF&group=0&PVW=OFF` for PVW OFF
+
+
 
 This project allows an ESP8266 (Wemos D1 Mini) to respond to POST requests from [Joseph Adam's Tally Arbiter](https://github.com/josephdadams/TallyArbiter) in order to control Neopixel Strips.
 

@@ -4,14 +4,24 @@
 #include <Adafruit_NeoPixel.h>
 #include "index.h"
 
-const char* ssid = "xxxxxx";
-const char* pass = "xxxxxx";
-const char* host_name = "esp-tally";
+const char* ssid = "SSID";
+const char* pass = "password";
+const char* host_name = "Tally-Light-1";
+// Set your Static IP address
+IPAddress local_IP(192, 168, 0, 51);
+// Set your Gateway IP address
+IPAddress gateway(192, 168, 0, 1);
+IPAddress subnet(255, 255, 255, 0);
+IPAddress primaryDNS(8, 8, 8, 8);
+IPAddress secondaryDNS(8, 8, 4, 4);
+//Status Check Vars
+bool pvw_active = false;
+bool pgm_active = false;
 
 //LED config
 const int led = 2;    //D4 wemos mini also on board led
-#define LED_PIN    15   //D8 wemos mini for NeoPixel
-#define LED_COUNT 10
+#define LED_PIN    D7   //D8 wemos mini for NeoPixel
+#define LED_COUNT 12
 
 // group[x][2] x is number of groups
 int group[2][2] = {{0,5},{5,5}}; //{start,count} for each group
@@ -83,16 +93,31 @@ void handlePOST() {
     
     } 
     Serial.print(message);*/
+    /* Handle PVW and PGM status */
+    if(server.arg("PVW") == "ON") {
+      Serial.print("PVW True \n");
+        pvw_active = true;
+    } else if(server.arg("PVW") == "OFF") {
+        Serial.print("PVW False \n");
+        pvw_active = false;
+    }
+    if(server.arg("PGM") == "ON") {
+      Serial.print("PGM True \n");
+        pgm_active = true;
+    } else if(server.arg("PGM") == "OFF") {
+        pgm_active = false;
+        Serial.print("PGM False \n");
+    }
     
     if (server.arg("led") == "ON"){
-        int r_val = server.arg("red").toInt();
-        int g_val = server.arg("green").toInt();
-        int b_val = server.arg("blue").toInt();
-        int grp_val = server.arg("group").toInt();
+         int r_val = server.arg("red").toInt();
+         int g_val = server.arg("green").toInt();
+         int b_val = server.arg("blue").toInt();
+         int grp_val = server.arg("group").toInt();
         digitalWrite(led, LOW);
         Serial.print("LED ON via POST\n");
         neo_set(grp_val, r_val, g_val, b_val); }
-    else if (server.arg("led") == "OFF") {
+    else if (server.arg("led") == "OFF" && !pvw_active && !pgm_active) {
         int grp_val = server.arg("group").toInt();
         digitalWrite(led, HIGH);
         Serial.print("LED OFF via POST\n");
@@ -114,7 +139,10 @@ void setup()
     Serial.begin(74880);
  
     // *** Connect to a WiFi acces point ***
-    
+      // Configures static IP address
+    if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+        Serial.println("STA Failed to configure");
+    }
     Serial.printf("Connecting to %s ", ssid);
     WiFi.hostname(host_name);
     
